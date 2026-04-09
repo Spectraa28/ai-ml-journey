@@ -1,0 +1,23 @@
+artifact_path: /home/spectra/Desktop/ml-ai-journey/Week-6/mlruns/1/models/m-79d1716709b845a884e3ec6bc50b4fe9/artifacts
+flavors:
+  python_function:
+    config:
+      device: null
+    data: data
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.pytorch
+    pickle_module_name: mlflow.pytorch.pickle_module
+    python_version: 3.13.11
+  pytorch:
+    code: null
+    model_data: data
+    pytorch_version: 2.11.0+cu130
+mlflow_version: 3.11.1
+model_id: m-79d1716709b845a884e3ec6bc50b4fe9
+model_size_bytes: 69824
+model_uuid: m-79d1716709b845a884e3ec6bc50b4fe9
+prompts: null
+run_id: 8a0f364d6a8a4fd6a96eb058b5ce0f68
+utc_time_created: '2026-04-09 11:21:08.489454'
