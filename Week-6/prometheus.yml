@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s  # scrape every 15 seconds
+
+scrape_configs:
+  - job_name: 'fraud-api'
+    static_configs:
+      - targets: ['172.17.0.1:8000']  # your FastAPI app
