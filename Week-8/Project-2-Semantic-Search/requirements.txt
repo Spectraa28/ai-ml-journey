@@ -1,0 +1,11 @@
+sentence-transformers
+chromadb
+fastapi
+uvicorn
+prometheus-client
+mlflow
+pandas
+numpy
+scikit-learn
+dvc
+EOF
