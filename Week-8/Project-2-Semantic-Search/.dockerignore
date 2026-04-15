@@ -1,0 +1,6 @@
+data/chroma_db/
+notebooks/
+__pycache__/
+*.pyc
+.git/
+*.ipynb

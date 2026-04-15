@@ -6,17 +6,30 @@ from prometheus_client import Histogram, Counter, generate_latest, CONTENT_TYPE_
 import time
 import hashlib
 from fastapi import HTTPException
+from contextlib import asynccontextmanager
+from src.startup import initialize_database
 
-app = FastAPI(title="CFPB Compalint Search API")
+collection = None  # declared at module level
 
+is_ready = False
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global collection
+    global is_ready
+    is_ready = True
+    collection = initialize_database()  # runs on startup
+    yield
+    
+app = FastAPI(title="CFPB Compalint Search API", lifespan=lifespan)
 # Load the model and DB once at startup 
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
 model_a = SentenceTransformer("all-MiniLM-L6-v2")
+model = model_a
+
+
 model_b = SentenceTransformer("all-mpnet-base-v2")      # 10% of traffic
 
 client = chromadb.PersistentClient(path="data/chroma_db")
-collection = client.get_collection("cfpb_complaints")
 
 # Prometheus metrices 
 SEARCH_LATENCY = Histogram(
@@ -73,12 +86,16 @@ def search(
     except Exception as e:
         SEARCH_COUNT.labels(status="error").inc()
         raise HTTPException(status_code=500, detail=str(e))
-        
+       
+       
+
+
+ 
 @app.get("/health")
 def health():
     return {
-        "status": "ok",
-        "collection_size": collection.count(),
+        "status": "ready" if is_ready else "indexing",
+        "collection_size": collection.count() if collection else 0,
         "default_model": "all-MiniLM-L6-v2"
     }
 
@@ -127,7 +144,7 @@ def search_ab(
         hits = []
         for doc, dist, meta in zip(
             results["documents"][0],
-            results["distance"][0],
+            results["distances"][0],
             results["metadatas"][0]
         ):
             hits.append({

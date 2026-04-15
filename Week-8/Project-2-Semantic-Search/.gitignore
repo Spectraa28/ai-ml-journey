@@ -1,0 +1,38 @@
+# ========================================
+# Project 2: Semantic Search API
+# ========================================
+
+# 1. Data & Vector Databases (Crucial for GitHub limits)
+data/*.csv
+data/chroma_db/
+*.sqlite3
+*.db
+
+# 2. MLflow Experiment Tracking
+mlruns/
+.trash/
+
+# 3. Python & FastAPI Caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# 4. Jupyter Notebooks
+.ipynb_checkpoints/
+
+# 5. Virtual Environments (Miniconda/Venv)
+venv/
+env/
+.venv/
+.conda/
+
+# 6. Environment Variables (Never push API keys)
+.env
+.env.*
+*.secret
+
+# 7. IDE / Editor Folders
+.vscode/
+.idea/
+*.swp
