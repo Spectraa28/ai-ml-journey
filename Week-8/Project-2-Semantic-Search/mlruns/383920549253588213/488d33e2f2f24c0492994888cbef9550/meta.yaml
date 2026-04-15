@@ -1,0 +1,14 @@
+artifact_uri: /home/spectra/Desktop/ml-ai-journey/Week-8/Project-2-Semantic-Search/notebooks/../mlruns/383920549253588213/488d33e2f2f24c0492994888cbef9550/artifacts
+end_time: 1776238538890
+entry_point_name: ''
+experiment_id: '383920549253588213'
+lifecycle_stage: active
+run_id: 488d33e2f2f24c0492994888cbef9550
+run_name: query-drift-detection
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1776238538874
+status: 3
+tags: []
+user_id: spectra
