@@ -4,11 +4,17 @@ import chromadb
 from fastapi.responses import Response
 from prometheus_client import Histogram, Counter, generate_latest, CONTENT_TYPE_LATEST
 import time
+import hashlib
+from fastapi import HTTPException
 
 app = FastAPI(title="CFPB Compalint Search API")
 
 # Load the model and DB once at startup 
 model = SentenceTransformer("all-MiniLM-L6-v2")
+
+model_a = SentenceTransformer("all-MiniLM-L6-v2")
+model_b = SentenceTransformer("all-mpnet-base-v2")      # 10% of traffic
+
 client = chromadb.PersistentClient(path="data/chroma_db")
 collection = client.get_collection("cfpb_complaints")
 
@@ -66,7 +72,83 @@ def search(
     
     except Exception as e:
         SEARCH_COUNT.labels(status="error").inc()
+        raise HTTPException(status_code=500, detail=str(e))
         
 @app.get("/health")
 def health():
-    return {"status": "ok", "collection_size": collection.count()}
+    return {
+        "status": "ok",
+        "collection_size": collection.count(),
+        "default_model": "all-MiniLM-L6-v2"
+    }
+
+
+# A/B metrics - track per model version 
+AB_SEARCH_LATENCY = Histogram(
+    "ab_search_latency_seconds",
+    "Search latency per  model version",
+    ["model_version"],
+    buckets=[0.01,0.05,0.1,0.5,1.0,2.0]
+)
+
+AB_SEARCH_SCORE = Histogram(
+    "ab_search_score",
+    "Top result similarity score per model version",
+    ["model_version"],
+    buckets=[0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+)
+
+AB_REQUEST_COUNT = Counter(
+    "ab_request_total",
+    "Request per model version",
+    ["model_version"]
+)
+
+def get_model_version(query: str, split: int = 10) -> str:
+    hash_value = int(hashlib.md5(query.encode()).hexdigest(),16)
+    return "model_b" if hash_value % 100 < split else "model_a"
+
+@app.get("/search/ab")
+def search_ab(
+    query: str,
+    n_results: int = Query(default=5,le=20)
+):
+    start  = time.time()
+    version = get_model_version(query)
+    model = model_b if version == "model_b" else model_a
+    try: 
+        query_embedding = model.encode([query]).tolist()
+        results = collection.query(
+            query_embeddings=query_embedding,
+            n_results=n_results,
+            include=["documents","distances","metadatas"]
+        )
+        
+        hits = []
+        for doc, dist, meta in zip(
+            results["documents"][0],
+            results["distance"][0],
+            results["metadatas"][0]
+        ):
+            hits.append({
+                "score": round(1-dist,4),
+                "product":meta["product"],
+                "issue":meta["issue"],
+                "text": doc[:200]
+            })
+            
+        latency = time.time() - start
+        top_score = hits[0]["score"] if hits else 0 
+        
+        AB_SEARCH_LATENCY.labels(model_version=version).observe(latency)
+        AB_SEARCH_SCORE.labels(model_version=version).observe(top_score)
+        AB_REQUEST_COUNT.labels(model_version=version).inc()
+
+        return {
+            "query": query,
+            "model_version": version,
+            "results": hits
+        }
+
+    except Exception as e:
+        raise e
