@@ -1,0 +1,14 @@
+artifact_uri: /home/spectra/Desktop/ml-ai-journey/Week-8/Project-2-Semantic-Search/notebooks/../mlruns/477950621532171937/00cf6767d9da4ef5b104b2d6f568fdcd/artifacts
+end_time: 1776224595775
+entry_point_name: ''
+experiment_id: '477950621532171937'
+lifecycle_stage: active
+run_id: 00cf6767d9da4ef5b104b2d6f568fdcd
+run_name: all-MiniLM-L6-v2
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1776224564418
+status: 3
+tags: []
+user_id: spectra

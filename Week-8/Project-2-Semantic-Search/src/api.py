@@ -38,7 +38,7 @@ def search(
     start = time.time()
     try:
         query_embedding = model.encode([query]).tolist()
-        where = {"products": product} if product else None
+        where = {"product": product} if product else None
         
         results = collection.query(
             query_embeddings=query_embedding,
