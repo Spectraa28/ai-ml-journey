@@ -1,7 +1,7 @@
 import os
 import time
 import mlflow
-from groq import Groq
+import google.generativeai as genai
 from prometheus_client import Counter, Histogram, Gauge
 
 # Local Module Imports
@@ -27,7 +27,7 @@ except ValueError:
 #     company_name="Apple Inc."
 # )
 
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+client = genai.configure(api_key="####")
 def generate_answer(query: str, artifacts: dict):
     """
     Accepts artifacts explicitly from the caller (FastAPI state).
@@ -44,15 +44,29 @@ def generate_answer(query: str, artifacts: dict):
     
     final_prompt = citation_formatted_answer(query, retrieved_docs)
     
-    chat_completion = client.chat.completions.create(
-        messages=[{"role": "user", "content": final_prompt}],
-        model="llama-3.3-70b-versatile",
+    model = genai.GenerativeModel('gemini-3.1-flash-lite') # or 'gemini-3-flash'
+    
+    # We set temperature to 0.0 for deterministic financial auditing
+    response = model.generate_content(
+        final_prompt,
+        generation_config=genai.types.GenerationConfig(
+            temperature=0.0,
+        )
     )
     
+    # 5. Extract Text and Token Usage
+    # Note: Gemini uses 'candidates' and 'usage_metadata'
+    answer_text = response.text
+    usage = {
+        "prompt_tokens": response.usage_metadata.prompt_token_count,
+        "completion_tokens": response.usage_metadata.candidates_token_count,
+        "total_tokens": response.usage_metadata.total_token_count
+    }
+    
     return {
-        "answer": chat_completion.choices[0].message.content,
+        "answer": answer_text,
         "sources": retrieved_docs,
-        "usage": chat_completion.usage
+        "usage": usage
     }
 
 def generate_answer_with_monitoring(query: str, artifacts: dict):
