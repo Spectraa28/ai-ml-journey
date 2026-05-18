@@ -1,11 +1,11 @@
 import os
 import time
 import mlflow
-import google.generativeai as genai
+from google import genai
 from prometheus_client import Counter, Histogram, Gauge
 
 # Local Module Imports
-from ingestion import initialize_ingestion
+from ingestion import intialize_ingestion
 from retrieval import expand_financial_query, retrieve_with_citations, citation_formatted_answer
 # --- MLflow Setup ---
 mlflow.set_experiment("Financial_RAG_Production")
@@ -27,7 +27,8 @@ except ValueError:
 #     company_name="Apple Inc."
 # )
 
-client = genai.configure(api_key="####")
+client = genai.Client(api_key="####")
+
 def generate_answer(query: str, artifacts: dict):
     """
     Accepts artifacts explicitly from the caller (FastAPI state).
@@ -36,20 +37,19 @@ def generate_answer(query: str, artifacts: dict):
     
     retrieved_docs = retrieve_with_citations(
         query=expanded_query,
-        bm25_index=artifacts["bm25"],        # <--- Use passed artifacts
+        bm25_index=artifacts["bm25"],        
         documents=artifacts["enriched_texts"],
         chunks=artifacts["chunks"],
         collection=artifacts["collection"]
     )
     
     final_prompt = citation_formatted_answer(query, retrieved_docs)
-    
-    model = genai.GenerativeModel('gemini-3.1-flash-lite') # or 'gemini-3-flash'
-    
+        
     # We set temperature to 0.0 for deterministic financial auditing
-    response = model.generate_content(
-        final_prompt,
-        generation_config=genai.types.GenerationConfig(
+    response = client.models.generate_content(
+        model='gemini-3.1-flash-lite',
+        contents=final_prompt,
+        config=genai.types.GenerateContentConfig(
             temperature=0.0,
         )
     )
@@ -91,8 +91,8 @@ def generate_answer_with_monitoring(query: str, artifacts: dict):
                 "answer": result["answer"],
                 "sources": result["sources"],
                 "latency_ms": round(latency_ms, 2),
-                "prompt_tokens": result["usage"].prompt_tokens,
-                "completion_tokens": result["usage"].completion_tokens
+                "prompt_tokens": result["usage"]["prompt_tokens"],
+                "completion_tokens": result["usage"]["completion_tokens"]
             }
         except Exception as e:
             FAILURE_COUNT.inc()

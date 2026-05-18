@@ -7,7 +7,7 @@ import uvicorn
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 # Import internal modules
-from ingestion import initialize_ingestion
+from ingestion import intialize_ingestion
 from pipeline import generate_answer_with_monitoring
 
 
@@ -20,9 +20,10 @@ async def lifespan(app: FastAPI):
     """
     print("Initializing RAG artifacts (Models & ChromaDB)")
     # Store initialized components in app.state for access in routes
-    app.state.artifacts = initialize_ingestion(
-        file_path="apple_10k_2023.htm", 
-        company_name="Apple Inc."
+    app.state.artifacts = intialize_ingestion(
+        file_path="10-K 2023.pdf", 
+        company_name="Apple Inc.",
+        fiscal_year="FY2023"
     )
     print("Initialization complete. Server ready.")
     yield
