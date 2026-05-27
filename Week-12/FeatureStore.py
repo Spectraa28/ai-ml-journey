@@ -3,11 +3,13 @@ import redis
 import os 
 from datetime import timezone,datetime
 
-pg_conn = psycopg2.connect(os.environ.get("DATABASE_URL"))
-redis_client =  redis.Redis.from_url(os.environ.get("REDIS_URL"))
+pg_conn = psycopg2.connect(
+    os.environ.get("DATABASE_URL", "postgresql://postgres:password@localhost:5432/featurestore")
+)
 
-
-
+redis_client = redis.Redis.from_url(
+    os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+)
 with pg_conn.cursor() as cursor:
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS feature_store (
