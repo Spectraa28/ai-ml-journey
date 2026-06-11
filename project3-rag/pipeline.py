@@ -1,11 +1,15 @@
+# Pipeline.py
 import os
 import time
 import mlflow
 from google import genai
+from dotenv import load_dotenv
 from prometheus_client import Counter, Histogram, Gauge
 
+load_dotenv()
+
 # Local Module Imports
-from ingestion import intialize_ingestion
+from ingestion import initialize_ingestion
 from retrieval import expand_financial_query, retrieve_with_citations, citation_formatted_answer
 # --- MLflow Setup ---
 mlflow.set_experiment("Financial_RAG_Production")
@@ -27,7 +31,7 @@ except ValueError:
 #     company_name="Apple Inc."
 # )
 
-client = genai.Client(api_key="####")
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 def generate_answer(query: str, artifacts: dict):
     """

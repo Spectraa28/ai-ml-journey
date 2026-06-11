@@ -1,3 +1,5 @@
+# Main.py 
+
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Response
@@ -7,7 +9,7 @@ import uvicorn
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 # Import internal modules
-from ingestion import intialize_ingestion
+from ingestion import initialize_ingestion
 from pipeline import generate_answer_with_monitoring
 
 
@@ -20,7 +22,7 @@ async def lifespan(app: FastAPI):
     """
     print("Initializing RAG artifacts (Models & ChromaDB)")
     # Store initialized components in app.state for access in routes
-    app.state.artifacts = intialize_ingestion(
+    app.state.artifacts = initialize_ingestion(
         file_path="10-K 2023.pdf", 
         company_name="Apple Inc.",
         fiscal_year="FY2023"

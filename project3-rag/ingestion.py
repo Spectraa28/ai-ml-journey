@@ -1,4 +1,4 @@
-# IMPOrts 
+# IMPOrts  -> injestion.py 
 import os
 import re
 import bs4
@@ -222,7 +222,7 @@ def ingest_with_docling(file_path: str,company_name: str, doc_type: str, fiscal_
         
         
         
-def intialize_ingestion(file_path: str, company_name: str, doc_type:str = "10-k",fiscal_year: str = "FY2023"):
+def initialize_ingestion(file_path: str, company_name: str, doc_type:str = "10-k",fiscal_year: str = "FY2023"):
     """
         Orchestrates the ingestion , embedding , and storage.
         Legacy BeautifulSoup  parsing replaced with layout-aware IBM Docling 
